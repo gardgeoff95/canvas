@@ -1,4 +1,4 @@
-const scale = 1;
+const scale = 1.0;
 const width = 86;
 const height = 85;
 const scaledWidth = scale * width;
@@ -8,33 +8,32 @@ const facingDown = 1;
 const facingUp = 2;
 const facingLeft = 3;
 const facingRight = 4;
+const attackingRight = 0
+const attackingUp = 1
+const attackingDown = 2
+const attackingLeft = 3
+
+
 const frameLimit = 12;
 const movementSpeed = 5.0;
-let array = [ 
-    [0, 0, 0, 0],
-    [1 ,2 ,2 ,2]
+
+let mapArray = [
+    [1, 1, 1],
+    [1, 2, 1],
+    [1, 1, 1]
 ]
-array[1][0] = 2
-array[1][0 + 1] = 1
-
-let characterPos = {
-    row: 1,
-    col: 2,
-}
-
-// let wall = {
-//     x = 
-// }
 
 
 let canvas = document.getElementById("myCanvas");
 let ctx = canvas.getContext("2d");
 let cycleLoop = [0, 1, 2, 3, 4];
+let cycleLoop4 = [0, 1, 2, 3];
 let attackingLoop = [0, 1, 2];
 let currentLoopIndex = 0;
 let attackingLoopIndex = 0;
 let frameCount = 0;
 let currentDirection = facingDown;
+let attackingDirection = attackingRight
 let positionX = 0;
 let positionY = 0;
 let img = new Image();
@@ -49,17 +48,17 @@ let keyPresses = {};
 
 window.addEventListener("keydown", keyDownListener, false);
 function keyDownListener(event) {
-        keyPresses[event.key] = true;
-    
-   
-   
+    keyPresses[event.key] = true;
+
+
+
 };
 window.addEventListener("keyup", keyUpListener, false);
 function keyUpListener(event) {
 
-        keyPresses[event.key] = false;
-    
-  
+    keyPresses[event.key] = false;
+
+
 }
 
 
@@ -70,6 +69,7 @@ function loadImage() {
     };
     attack.src = "/images/attack.png";
     attack.onload = () => {
+        attacking = false;
         window.requestAnimationFrame(gameLoop);
     }
 }
@@ -79,11 +79,13 @@ function drawFrame(frameX, frameY, canvasX, canvasY) {
 };
 
 function drawAttack(frameX, frameY, canvasX, canvasY) {
-        ctx.drawImage(attack, frameX * width, frameY * height, width, height, canvasX, canvasY, scaledWidth, scaledHeight);
+    ctx.drawImage(attack, frameX * width, frameY * height, width, height, canvasX, canvasY, scaledWidth, scaledHeight);
 
 
 
 }
+
+
 
 loadImage();
 
@@ -91,71 +93,99 @@ loadImage();
 let fps = 0;
 
 function gameLoop(currentTime) {
-    setTimeout(function() {
-  
-    
-        let attacking = false;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        let hasMoved = false;
-      
-       
-        if (keyPresses.w) {
-            moveCharacter(0, -movementSpeed, facingUp);
-            hasMoved = true;
-        } else if (keyPresses.s) {
-            moveCharacter(0, movementSpeed, facingDown);
-            hasMoved = true;
-        } else if (keyPresses.a) {
-            moveCharacter(-movementSpeed, 0, facingRight);
-            hasMoved = true;
-        } else if (keyPresses.d) {
-            moveCharacter(movementSpeed, 0, facingLeft);
-            hasMoved = true;
-        } else if (keyPresses.f) {
+
+    if (frameCount > frameLimit) {
+        frameCount = 0;
+    }
+
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    let hasMoved = false;
+
+
+    if (keyPresses.w) {
+        cycleLoop = cycleLoop4
+        moveCharacter(0, -movementSpeed, facingUp);
+        attackingDirection = attackingDown;
+        if (keyPresses.f) {
             attacking = true;
         }
-        if (hasMoved) {
-            frameCount++;
-            if (frameCount >= frameLimit) {
-                frameCount = 0;
-                currentLoopIndex++;
-                if (currentLoopIndex >= cycleLoop.length) {
-                    currentLoopIndex = 0;
-                }
-            }
+        hasMoved = true;
+    } else if (keyPresses.s) {
+        moveCharacter(0, movementSpeed, facingDown);
+        attackingDirection = attackingUp;
+        if (keyPresses.f) {
+            attacking = true;
         }
-        if (!hasMoved) {
-            if (currentDirection === 4 || currentDirection === 3) {
+        hasMoved = true;
+    } else if (keyPresses.a) {
+        moveCharacter(-movementSpeed, 0, facingRight);
+        attackingDirection = attackingLeft;
+        if (keyPresses.f) {
+            attacking = true;
+        }
+        hasMoved = true;
+
+    } else if (keyPresses.d) {
+        moveCharacter(movementSpeed, 0, facingLeft);
+        attackingDirection = attackingRight;
+        if (keyPresses.f) {
+            attacking = true;
+        }
+        hasMoved = true;
+
+    }
+    if (hasMoved) {
+        frameCount++;
+        if (frameCount >= frameLimit) {
+            frameCount = 0;
+            currentLoopIndex++;
+            if (currentLoopIndex >= cycleLoop.length) {
                 currentLoopIndex = 0;
-            } else {
-                moveCharacter(0, 0, idle);
             }
         }
-        if(attacking) {       
-            fps = 100;
-            currentLoopindex = 0;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawAttack(attackingLoop[attackingLoopIndex], 1, positionX, positionY);
-            attackingLoopIndex ++;
-            console.log(attackingLoop);
-            console.log(attackingLoopIndex);
-            if (attackingLoopIndex > attackingLoop.length -1) {
-                attacking = false;         
-                attackingLoopIndex = 0;
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                drawFrame(cycleLoop[currentLoopIndex], currentDirection, positionX, positionY)
-            }
-    
-        } else{
-            fps = 10;
-            
-            drawFrame(cycleLoop[currentLoopIndex], currentDirection, positionX, positionY);
-        }    
+    }
+    if (!hasMoved) {
+        if (currentDirection === 4 || currentDirection === 3) {
+            currentLoopIndex = 0;
+        } else {
+            moveCharacter(0, 0, idle);
+        }
+    }
+
+    if (attacking) {
+
+        frameCount++
+        drawAttack(attackingLoop[attackingLoopIndex], attackingDirection, positionX, positionY)
+        console.log("do something");
+        window.requestAnimationFrame(gameLoop);
+        if (frameCount >= frameLimit) {
+            console.log(frameCount)
+            frameCount = 0;
+            attackingLoopIndex++;
+            console.log(attackingLoopIndex)
+        } if (attackingLoopIndex >= attackingLoop.length) {
+            console.log("AYY")
+            attackingLoopIndex = 0;
+            attacking = false;
+            window.cancelAnimationFrame(gameLoop);
+
+        }
+
+
+    } else {
+        fps = 0;
+        attackingLoopIndex = 0;
+        drawFrame(cycleLoop[currentLoopIndex], currentDirection, positionX, positionY);
         window.requestAnimationFrame(gameLoop);
 
 
-    }, fps)
+    }
+
+
+
+
 
 
 }
