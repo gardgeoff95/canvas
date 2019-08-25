@@ -132,17 +132,18 @@ function gameLoop(currentTime) {
                 moveCharacter(0, 0, idle);
             }
         }
-        if(attacking && currentDirection === 3) {       
+        if(attacking) {       
             fps = 100;
             currentLoopindex = 0;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawAttack(attackingLoop[attackingLoopIndex], 0, positionX, positionY);
+            drawAttack(attackingLoop[attackingLoopIndex], 1, positionX, positionY);
             attackingLoopIndex ++;
             console.log(attackingLoop);
             console.log(attackingLoopIndex);
-            if (attackingLoopIndex > attackingLoop.length) {
+            if (attackingLoopIndex > attackingLoop.length -1) {
                 attacking = false;         
                 attackingLoopIndex = 0;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 drawFrame(cycleLoop[currentLoopIndex], currentDirection, positionX, positionY)
             }
     
