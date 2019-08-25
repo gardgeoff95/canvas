@@ -18,11 +18,21 @@ const frameLimit = 12;
 const movementSpeed = 5.0;
 
 let mapArray = [
+    [0, 1, 1],
     [1, 1, 1],
-    [1, 2, 1],
     [1, 1, 1]
 ]
+let characterObj = {
+    col : 0,
+    row : 0,
 
+}
+console.log(mapArray[0].length)
+$(document).keydown(function(e){
+    if (e.key === "w") {
+
+    }
+}) 
 
 let canvas = document.getElementById("myCanvas");
 let ctx = canvas.getContext("2d");
@@ -38,6 +48,7 @@ let positionX = 0;
 let positionY = 0;
 let img = new Image();
 let attack = new Image();
+let chest = new Image();
 
 canvas.width = 500;
 canvas.height = 500;
@@ -71,18 +82,23 @@ function loadImage() {
     attack.onload = () => {
         attacking = false;
         window.requestAnimationFrame(gameLoop);
-    }
+    };
+    chest.src = "/images/chest.png"
+    chest.onload = () => {
+        window.requestAnimationFrame(gameLoop);
+    };
 }
 function drawFrame(frameX, frameY, canvasX, canvasY) {
-    ctx.drawImage(img, frameX * width, frameY * height, width, height, canvasX, canvasY, scaledWidth, scaledHeight)
+    ctx.drawImage(img, frameX * width, frameY * height, width, height, canvasX, canvasY, scaledWidth, scaledHeight);
 
 };
 
+
 function drawAttack(frameX, frameY, canvasX, canvasY) {
     ctx.drawImage(attack, frameX * width, frameY * height, width, height, canvasX, canvasY, scaledWidth, scaledHeight);
-
-
-
+}
+function drawChest() {
+    ctx.drawImage(chest, 0, 0, 50, 50);
 }
 
 
@@ -93,13 +109,15 @@ loadImage();
 let fps = 0;
 
 function gameLoop(currentTime) {
-
+    
     if (frameCount > frameLimit) {
         frameCount = 0;
     }
 
 
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawChest();
 
     let hasMoved = false;
 
@@ -182,11 +200,6 @@ function gameLoop(currentTime) {
 
 
     }
-
-
-
-
-
 
 }
 function moveCharacter(deltaX, deltaY, direction) {
