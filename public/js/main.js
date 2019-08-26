@@ -1,3 +1,10 @@
+
+let character = {
+
+    width: 86,
+    height: 85,
+
+}
 const scale = 1.0;
 const width = 86;
 const height = 85;
@@ -15,24 +22,13 @@ const attackingLeft = 3
 
 
 const frameLimit = 12;
-const movementSpeed = 5.0;
+const movementSpeed = 2.0;
 
-let mapArray = [
-    [0, 1, 1],
-    [1, 1, 1],
-    [1, 1, 1]
-]
-let characterObj = {
-    col : 0,
-    row : 0,
-
-}
-console.log(mapArray[0].length)
-$(document).keydown(function(e){
+$(document).keydown(function (e) {
     if (e.key === "w") {
 
     }
-}) 
+})
 
 let canvas = document.getElementById("myCanvas");
 let ctx = canvas.getContext("2d");
@@ -50,11 +46,21 @@ let img = new Image();
 let attack = new Image();
 let chest = new Image();
 
-canvas.width = 500;
-canvas.height = 500;
-attacking = false;
+canvas.width = 900;
+canvas.height = 600;
+
+var Obstacle = function (width, height, canvasX, canvasY) {
+    this.width = width;
+    this.height = height;
+    this.x = canvasX;
+    this.y = canvasY
+}
+
+let rock = new Obstacle(50, 50, 200, 200)
+console.log(rock);
 
 let keyPresses = {};
+
 
 
 window.addEventListener("keydown", keyDownListener, false);
@@ -80,7 +86,6 @@ function loadImage() {
     };
     attack.src = "/images/attack.png";
     attack.onload = () => {
-        attacking = false;
         window.requestAnimationFrame(gameLoop);
     };
     chest.src = "/images/chest.png"
@@ -98,7 +103,7 @@ function drawAttack(frameX, frameY, canvasX, canvasY) {
     ctx.drawImage(attack, frameX * width, frameY * height, width, height, canvasX, canvasY, scaledWidth, scaledHeight);
 }
 function drawChest() {
-    ctx.drawImage(chest, 0, 0, 50, 50);
+    ctx.drawImage(chest, rock.x, rock.y, rock.width, rock.height);
 }
 
 
@@ -106,19 +111,19 @@ function drawChest() {
 loadImage();
 
 
-let fps = 0;
+let fps = 1000;
 
 function gameLoop(currentTime) {
-    
-    if (frameCount > frameLimit) {
-        frameCount = 0;
-    }
+
+
+
+
 
 
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawChest();
-
+    let attacking = false;
     let hasMoved = false;
 
 
@@ -126,33 +131,23 @@ function gameLoop(currentTime) {
         cycleLoop = cycleLoop4
         moveCharacter(0, -movementSpeed, facingUp);
         attackingDirection = attackingDown;
-        if (keyPresses.f) {
-            attacking = true;
-        }
         hasMoved = true;
     } else if (keyPresses.s) {
         moveCharacter(0, movementSpeed, facingDown);
         attackingDirection = attackingUp;
-        if (keyPresses.f) {
-            attacking = true;
-        }
         hasMoved = true;
     } else if (keyPresses.a) {
         moveCharacter(-movementSpeed, 0, facingRight);
         attackingDirection = attackingLeft;
-        if (keyPresses.f) {
-            attacking = true;
-        }
         hasMoved = true;
 
     } else if (keyPresses.d) {
         moveCharacter(movementSpeed, 0, facingLeft);
         attackingDirection = attackingRight;
-        if (keyPresses.f) {
-            attacking = true;
-        }
         hasMoved = true;
 
+    } if (keyPresses.f) {
+        attacking = true;
     }
     if (hasMoved) {
         frameCount++;
@@ -164,6 +159,7 @@ function gameLoop(currentTime) {
             }
         }
     }
+
     if (!hasMoved) {
         if (currentDirection === 4 || currentDirection === 3) {
             currentLoopIndex = 0;
@@ -183,16 +179,18 @@ function gameLoop(currentTime) {
             frameCount = 0;
             attackingLoopIndex++;
             console.log(attackingLoopIndex)
-        } if (attackingLoopIndex >= attackingLoop.length) {
+        }
+        if (attackingLoopIndex >= attackingLoop.length) {
             console.log("AYY")
             attackingLoopIndex = 0;
-            attacking = false;
             window.cancelAnimationFrame(gameLoop);
+            attacking = false;
 
         }
 
 
     } else {
+
         fps = 0;
         attackingLoopIndex = 0;
         drawFrame(cycleLoop[currentLoopIndex], currentDirection, positionX, positionY);
@@ -203,11 +201,38 @@ function gameLoop(currentTime) {
 
 }
 function moveCharacter(deltaX, deltaY, direction) {
-    if (positionX + deltaX > -20 && positionX + scaledWidth + deltaX < canvas.width + 30) {
-        positionX += deltaX;
+    let distX = Math.abs(positionX - rock.x);
+    let distY = Math.abs(positionY - rock.y);
+    let collidingX = false;
+    let collidingY = false;
+
+    if ((positionX + width >= rock.x) &&
+        (positionX <= rock.x + width) &&
+        (positionY + height >= rock.y) &&
+        (positionY + height <= rock.y + height)) {
+        collidingX = true;
 
     }
-    if (positionY + deltaY > -5 && positionY + scaledHeight + deltaY < canvas.height + 10) {
+    if ((positionX + width >= rock.x) &&
+        (positionX <= rock.x + width) &&
+        (positionY + height >= rock.y) &&
+        (positionY <= rock.y + rock.height)) {
+        console.log("y nope")
+        collidingY = true;
+    }
+
+    if (positionX + deltaX > -20 &&
+        positionX + scaledWidth + deltaX < canvas.width + 30) {
+            if (collidingX) {
+                positionX = rock.x;
+            } else {
+                positionX += deltaX;
+            }
+
+
+    }
+    if (positionY + deltaY > -5 &&
+        positionY + scaledHeight + deltaY < canvas.height + 10) {
         positionY += deltaY;
     }
     currentDirection = direction;
