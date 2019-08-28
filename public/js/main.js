@@ -30,10 +30,11 @@ let positionY = 0;
 let img = new Image();
 let attack = new Image();
 let chest = new Image();
+let backgroundImg = new Image();
 canvas.width = 960;
 canvas.height = 580;
 
-let Obstacle = function(width, height, canvasX, canvasY, image) {
+let Sprite = function(width, height, canvasX, canvasY, image) {
   this.width = width;
   this.height = height;
   this.x = canvasX;
@@ -41,9 +42,9 @@ let Obstacle = function(width, height, canvasX, canvasY, image) {
   this.img = image;
 };
 
-
-let chestObj = new Obstacle(50, 50, 200, 200, chest);
-let bigChest = new Obstacle(100, 100, 350, 400, chest);
+let background = new Sprite(canvas.width, canvas.height, 0, 0, backgroundImg);
+let chestObj = new Sprite(50, 50, 200, 200, chest);
+let bigChest = new Sprite(100, 100, 350, 400, chest);
 
 let obstacleArray = [chestObj, bigChest];
 //empty object for keypresses that contain booleans
@@ -70,6 +71,7 @@ function loadImage() {
   chest.onload = () => {
     window.requestAnimationFrame(gameLoop);
   };
+  backgroundImg.src = "/images/woodBackground.png"
 }
 
 //draws different objects onto the canvas
@@ -112,6 +114,7 @@ function gameLoop(currentTime) {
   //clears the canvas every time gameLoop is called
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   //draws obstacles to canvas
+  drawObstacle(background);
   obstacleArray.forEach(function(obstacle) {
       drawObstacle(obstacle);
   })
