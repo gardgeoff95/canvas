@@ -12,27 +12,8 @@ const attackingRight = 0
 const attackingUp = 1
 const attackingDown = 2
 const attackingLeft = 3
-
-
 const frameLimit = 12;
-const movementSpeed = 5.0;
-
-let mapArray = [
-    [0, 1, 1],
-    [1, 1, 1],
-    [1, 1, 1]
-]
-let characterObj = {
-    col : 0,
-    row : 0,
-
-}
-console.log(mapArray[0].length)
-$(document).keydown(function(e){
-    if (e.key === "w") {
-
-    }
-}) 
+const movementSpeed = 2.0;
 
 let canvas = document.getElementById("myCanvas");
 let ctx = canvas.getContext("2d");
@@ -49,30 +30,29 @@ let positionY = 0;
 let img = new Image();
 let attack = new Image();
 let chest = new Image();
+canvas.width = 900;
+canvas.height = 600;
 
-canvas.width = 500;
-canvas.height = 500;
-attacking = false;
-
+let Obstacle = function (width, height, canvasX, canvasY) {
+    this.width = width;
+    this.height = height;
+    this.x = canvasX;
+    this.y = canvasY; 
+}
+let chestObj = new Obstacle(50, 50, 200, 200)
+let bigChest = new Obstacle(100, 100 , 350, 400)
+let obstacleArray = [chestObj, bigChest];
+//empty object for keypresses that contain booleans
 let keyPresses = {};
-
-
 window.addEventListener("keydown", keyDownListener, false);
 function keyDownListener(event) {
     keyPresses[event.key] = true;
-
-
-
 };
 window.addEventListener("keyup", keyUpListener, false);
 function keyUpListener(event) {
-
     keyPresses[event.key] = false;
-
-
 }
-
-
+//function that loads image then calls gameloop once finished loading
 function loadImage() {
     img.src = "/images/knight.png";
     img.onload = () => {
@@ -80,7 +60,6 @@ function loadImage() {
     };
     attack.src = "/images/attack.png";
     attack.onload = () => {
-        attacking = false;
         window.requestAnimationFrame(gameLoop);
     };
     chest.src = "/images/chest.png"
@@ -88,72 +67,57 @@ function loadImage() {
         window.requestAnimationFrame(gameLoop);
     };
 }
+
+//draws different objects onto the canvas
 function drawFrame(frameX, frameY, canvasX, canvasY) {
     ctx.drawImage(img, frameX * width, frameY * height, width, height, canvasX, canvasY, scaledWidth, scaledHeight);
 
 };
 
-
 function drawAttack(frameX, frameY, canvasX, canvasY) {
     ctx.drawImage(attack, frameX * width, frameY * height, width, height, canvasX, canvasY, scaledWidth, scaledHeight);
 }
-function drawChest() {
-    ctx.drawImage(chest, 0, 0, 50, 50);
+function drawObstacle(image, object) {
+    ctx.drawImage(image, object.x, object.y, object.width, object.height);
 }
 
-
-
+//calling load image to start the app
 loadImage();
 
-
-let fps = 0;
-
+//The actual game loop called recursively
 function gameLoop(currentTime) {
-    
-    if (frameCount > frameLimit) {
-        frameCount = 0;
-    }
-
-
-
+    //clears the canvas every time gameLoop is called
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawChest();
-
+    //draws obstacles to canvas
+    drawObstacle(chest, chestObj);
+    drawObstacle(chest, bigChest);
+    //state booleans
+    let attacking = false;
     let hasMoved = false;
-
-
+    //movement detections call different sprite animations
     if (keyPresses.w) {
         cycleLoop = cycleLoop4
         moveCharacter(0, -movementSpeed, facingUp);
         attackingDirection = attackingDown;
-        if (keyPresses.f) {
-            attacking = true;
-        }
         hasMoved = true;
     } else if (keyPresses.s) {
         moveCharacter(0, movementSpeed, facingDown);
         attackingDirection = attackingUp;
-        if (keyPresses.f) {
-            attacking = true;
-        }
         hasMoved = true;
     } else if (keyPresses.a) {
         moveCharacter(-movementSpeed, 0, facingRight);
         attackingDirection = attackingLeft;
-        if (keyPresses.f) {
-            attacking = true;
-        }
         hasMoved = true;
 
     } else if (keyPresses.d) {
         moveCharacter(movementSpeed, 0, facingLeft);
         attackingDirection = attackingRight;
-        if (keyPresses.f) {
-            attacking = true;
-        }
         hasMoved = true;
 
+    } if (keyPresses.f) {
+        attacking = true;
     }
+    //rotates through sprite animations and keeps animations from moving too fast
     if (hasMoved) {
         frameCount++;
         if (frameCount >= frameLimit) {
@@ -164,6 +128,7 @@ function gameLoop(currentTime) {
             }
         }
     }
+    //if not moving set to idle animation and reset sprite index
     if (!hasMoved) {
         if (currentDirection === 4 || currentDirection === 3) {
             currentLoopIndex = 0;
@@ -171,44 +136,73 @@ function gameLoop(currentTime) {
             moveCharacter(0, 0, idle);
         }
     }
-
+    //same as movement but for attacking
     if (attacking) {
-
         frameCount++
         drawAttack(attackingLoop[attackingLoopIndex], attackingDirection, positionX, positionY)
-        console.log("do something");
         window.requestAnimationFrame(gameLoop);
         if (frameCount >= frameLimit) {
             console.log(frameCount)
             frameCount = 0;
             attackingLoopIndex++;
             console.log(attackingLoopIndex)
-        } if (attackingLoopIndex >= attackingLoop.length) {
-            console.log("AYY")
+        }
+        if (attackingLoopIndex >= attackingLoop.length) {
             attackingLoopIndex = 0;
-            attacking = false;
             window.cancelAnimationFrame(gameLoop);
-
+            attacking = false;
         }
 
-
     } else {
-        fps = 0;
+        //resets attacking loop, draws character at current position, then recalls the function
         attackingLoopIndex = 0;
         drawFrame(cycleLoop[currentLoopIndex], currentDirection, positionX, positionY);
         window.requestAnimationFrame(gameLoop);
-
-
     }
 
 }
-function moveCharacter(deltaX, deltaY, direction) {
-    if (positionX + deltaX > -20 && positionX + scaledWidth + deltaX < canvas.width + 30) {
-        positionX += deltaX;
 
+
+//function for detecting movement and collision with walls / other objects
+function moveCharacter(deltaX, deltaY, direction) {
+    function collision(object) {
+        if (object.x + 35 < positionX + width &&
+            object.x - 20 + object.width > positionX &&
+            object.y  + 5 < positionY + height &&
+            object.y - 70 + object.height > positionY) {
+            console.log("Getting called!")
+            colliding = true;
+        }
     }
-    if (positionY + deltaY > -5 && positionY + scaledHeight + deltaY < canvas.height + 10) {
+    let colliding = false;
+
+    collision(chestObj);
+    collision(bigChest)
+    //bump collisions called when running into an object
+    if (colliding && currentDirection === 3) {
+        positionX -= movementSpeed;
+    } else if (colliding && currentDirection === 4) {
+        positionX += movementSpeed;
+    } else if (colliding && currentDirection === 1) {
+        //down
+        positionY -= movementSpeed;
+    } else if (colliding && currentDirection === 2) {
+        //up
+        positionY += movementSpeed
+    }
+
+    //movement / wall collision
+    if (positionX + deltaX > -20 &&
+        positionX + scaledWidth + deltaX < canvas.width + 30) {
+        positionX += deltaX;
+    }
+    if (positionY + deltaY > -5 &&
+        positionY + scaledHeight + deltaY < canvas.height + 10) {
         positionY += deltaY;
     }
     currentDirection = direction;
+}
+//function for hitbox with sword
+function hitBox () {
+
 }
