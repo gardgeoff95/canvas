@@ -34,7 +34,7 @@ let backgroundImg = new Image();
 canvas.width = 960;
 canvas.height = 580;
 
-let Sprite = function(width, height, canvasX, canvasY, image) {
+let Sprite = function (width, height, canvasX, canvasY, image) {
   this.width = width;
   this.height = height;
   this.x = canvasX;
@@ -47,7 +47,7 @@ let bigChest = new Sprite(100, 100, 350, 400, chest);
 ctx.fillRect(positionX + 50, positionY + 35, 45, 35);
 ctx.fillRect(positionX + 10, positionY - 15, 60, 50);
 
-let HitBox = function(x, y, width, height) {
+let HitBox = function (x, y, width, height) {
   this.x = x;
   this.y = y;
   (this.width = width), (this.height = height);
@@ -123,7 +123,7 @@ function gameLoop(currentTime) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   //draws obstacles to canvas
   drawObstacle(background);
-  obstacleArray.forEach(function(obstacle) {
+  obstacleArray.forEach(function (obstacle) {
     drawObstacle(obstacle);
   });
 
@@ -193,7 +193,7 @@ function gameLoop(currentTime) {
     collisionBox(chestObj, hitTop, "top");
     collisionBox(chestObj, hitLeft, "left");
     collisionBox(chestObj, hitDown, "down");
-    
+
 
     frameCount++;
     drawAttack(
@@ -223,13 +223,30 @@ function gameLoop(currentTime) {
       positionX,
       positionY
     );
-   
+    moveObject(chestObj);
 
     window.requestAnimationFrame(gameLoop);
   }
 }
 
 //function for detecting movement and collision with walls / other objects
+
+function moveObject(object) {
+  if (object.y < positionY) {
+    object.y += 0.5;
+  }
+  if (object.y > positionY) {
+    object.y -= 0.5;
+  }
+  if (object.x > positionX) {
+    object.x -= 0.5;
+  }
+  if (object.x < positionX) {
+    object.x+= 0.5;
+  }
+
+
+}
 function moveCharacter(deltaX, deltaY, direction) {
   function collision(object) {
     if (
@@ -284,25 +301,25 @@ function collisionBox(object1, object2, direction) {
     object1.x + object1.width > object2.x &&
     object1.y < object2.y + object2.height &&
     object1.y + object1.height > object2.y) {
-     console.log("HELLO!")
-     enemyHit = true;
- } 
- if (enemyHit){
-  switch (direction) {
-    case "right":
-      object1.x += 10;
-      break;
-    case "top":
-      object1.y -=10;
-      break;
-    case "left":
-      object1.x -= 10;
-      break;
-    case "down":
-      object1.y +=10;
+    console.log("HELLO!")
+    enemyHit = true;
+  }
+  if (enemyHit) {
+    switch (direction) {
+      case "right":
+        object1.x += 10;
+        break;
+      case "top":
+        object1.y -= 10;
+        break;
+      case "left":
+        object1.x -= 10;
+        break;
+      case "down":
+        object1.y += 10;
+    }
+
   }
 
- }
 
- 
 }
