@@ -41,10 +41,17 @@ let Sprite = function(width, height, canvasX, canvasY, image) {
   this.y = canvasY;
   this.img = image;
 };
-
 let background = new Sprite(canvas.width, canvas.height, 0, 0, backgroundImg);
 let chestObj = new Sprite(50, 50, 200, 200, chest);
 let bigChest = new Sprite(100, 100, 350, 400, chest);
+ctx.fillRect(positionX + 50, positionY + 35, 45, 35);
+ctx.fillRect(positionX + 10, positionY - 15, 60, 50);
+
+let HitBox = function(x, y, width, height) {
+  this.x = x;
+  this.y = y;
+  (this.width = width), (this.height = height);
+};
 
 let obstacleArray = [chestObj, bigChest];
 //empty object for keypresses that contain booleans
@@ -71,7 +78,7 @@ function loadImage() {
   chest.onload = () => {
     window.requestAnimationFrame(gameLoop);
   };
-  backgroundImg.src = "/images/woodBackground.png"
+  backgroundImg.src = "/images/woodBackground.png";
 }
 
 //draws different objects onto the canvas
@@ -104,6 +111,7 @@ function drawAttack(frameX, frameY, canvasX, canvasY) {
 }
 function drawObstacle(object) {
   ctx.drawImage(object.img, object.x, object.y, object.width, object.height);
+  ctx.stroke();
 }
 
 //calling load image to start the app
@@ -116,8 +124,18 @@ function gameLoop(currentTime) {
   //draws obstacles to canvas
   drawObstacle(background);
   obstacleArray.forEach(function(obstacle) {
-      drawObstacle(obstacle);
-  })
+    drawObstacle(obstacle);
+  });
+
+  let hitRight = new HitBox(positionX + 50, positionY + 35, 45, 35);
+  let hitTop = new HitBox(positionX, positionY, 70, 35);
+  let hitLeft = new HitBox(positionX - 20, positionY + 35, 30, 35);
+  let hitDown = new HitBox(positionX + 10, positionY + 35, 60, 60);
+
+  function drawHitbox(name) {
+    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.fillRect(name.x, name.y, name.width, name.height);
+  }
   //state booleans
   let attacking = false;
   let hasMoved = false;
@@ -128,14 +146,17 @@ function gameLoop(currentTime) {
     attackingDirection = attackingDown;
     hasMoved = true;
   } else if (keyPresses.s) {
+    cycleLoop = cycleLoop4;
     moveCharacter(0, movementSpeed, facingDown);
     attackingDirection = attackingUp;
     hasMoved = true;
   } else if (keyPresses.a) {
+    cycleLoop = cycleLoop;
     moveCharacter(-movementSpeed, 0, facingRight);
     attackingDirection = attackingLeft;
     hasMoved = true;
   } else if (keyPresses.d) {
+    cycleLoop = cycleLoop;
     moveCharacter(movementSpeed, 0, facingLeft);
     attackingDirection = attackingRight;
     hasMoved = true;
@@ -164,6 +185,16 @@ function gameLoop(currentTime) {
   }
   //same as movement but for attacking
   if (attacking) {
+    // drawHitbox(hitRight);
+    // drawHitbox(hitTop);
+    // drawHitbox(hitLeft);
+    // drawHitbox(hitDown);
+    collisionBox(chestObj, hitRight, "right");
+    collisionBox(chestObj, hitTop, "top");
+    collisionBox(chestObj, hitLeft, "left");
+    collisionBox(chestObj, hitDown, "down");
+    
+
     frameCount++;
     drawAttack(
       attackingLoop[attackingLoopIndex],
@@ -192,6 +223,8 @@ function gameLoop(currentTime) {
       positionX,
       positionY
     );
+   
+
     window.requestAnimationFrame(gameLoop);
   }
 }
@@ -242,4 +275,34 @@ function moveCharacter(deltaX, deltaY, direction) {
   currentDirection = direction;
 }
 //function for hitbox with sword
-function hitBox() {}
+
+function collisionBox(object1, object2, direction) {
+  enemyHit = false;
+
+
+  if (object1.x < object2.x + object2.width &&
+    object1.x + object1.width > object2.x &&
+    object1.y < object2.y + object2.height &&
+    object1.y + object1.height > object2.y) {
+     console.log("HELLO!")
+     enemyHit = true;
+ } 
+ if (enemyHit){
+  switch (direction) {
+    case "right":
+      object1.x += 10;
+      break;
+    case "top":
+      object1.y -=10;
+      break;
+    case "left":
+      object1.x -= 10;
+      break;
+    case "down":
+      object1.y +=10;
+  }
+
+ }
+
+ 
+}
