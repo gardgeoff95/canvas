@@ -1,13 +1,15 @@
 body{
-    height: 90vh;
+
     display: flex;
     justify-content: center;
     align-items: center;
 
 }
 #myCanvas{
-    border: 1px dashed black;
-    position: absolute;
+
+    border: 5px double black;
+
     left: 250px;
+ 
     
 }
