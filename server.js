@@ -8,6 +8,8 @@ app.use(express.static("public"));
 
 require("./routes/htmlRoutes")(app);
 app.listen(PORT, function() {
-    console.log("Server up and listening on port " + PORT);
+    console.log("***************************************\n" + 
+                "Server up and listening on port " + PORT +
+                "\n***************************************\n");
 
 })

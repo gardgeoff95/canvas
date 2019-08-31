@@ -7,7 +7,7 @@ body{
 }
 #myCanvas{
 
-    border: 5px double black;
+    border: 10px solid black;
 
     left: 250px;
  
