@@ -15,6 +15,7 @@ const attackingLeft = 3;
 const frameLimit = 12;
 const movementSpeed = 2.0;
 
+let attacking = false;
 let canvas = document.getElementById("myCanvas");
 let ctx = canvas.getContext("2d");
 let cycleLoop = [0, 1, 2, 3, 4];
@@ -23,6 +24,7 @@ let attackingLoop = [0, 1, 2];
 let currentLoopIndex = 0;
 let attackingLoopIndex = 0;
 let frameCount = 0;
+let hasAttacked = false;
 let currentDirection = facingDown;
 let attackingDirection = attackingRight;
 let positionX = 0;
@@ -44,6 +46,13 @@ let Sprite = function (width, height, canvasX, canvasY, image) {
 let background = new Sprite(canvas.width, canvas.height, 0, 0, backgroundImg);
 let chestObj = new Sprite(50, 50, 200, 200, chest);
 let bigChest = new Sprite(100, 100, 350, 400, chest);
+
+let wall = {
+  x : 200,
+  y : 0, 
+  width : 10,
+  height: 500
+}
 ctx.fillRect(positionX + 50, positionY + 35, 45, 35);
 ctx.fillRect(positionX + 10, positionY - 15, 60, 50);
 
@@ -59,10 +68,17 @@ let keyPresses = {};
 window.addEventListener("keydown", keyDownListener, false);
 function keyDownListener(event) {
   keyPresses[event.key] = true;
+
+
 }
 window.addEventListener("keyup", keyUpListener, false);
 function keyUpListener(event) {
   keyPresses[event.key] = false;
+  // if (event.key === "f") {
+  //   attacking = false;
+  // }
+
+
 }
 //function that loads image then calls gameloop once finished loading
 function loadImage() {
@@ -119,8 +135,10 @@ loadImage();
 
 //The actual game loop called recursively
 function gameLoop(currentTime) {
+
   //clears the canvas every time gameLoop is called
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+ 
   //draws obstacles to canvas
   drawObstacle(background);
   obstacleArray.forEach(function (obstacle) {
@@ -133,11 +151,11 @@ function gameLoop(currentTime) {
   let hitDown = new HitBox(positionX + 10, positionY + 35, 60, 60);
 
   function drawHitbox(name) {
-    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.fillStyle = "rgba(255, 255, 255, 1.0)";
     ctx.fillRect(name.x, name.y, name.width, name.height);
   }
   //state booleans
-  let attacking = false;
+
   let hasMoved = false;
   //movement detections call different sprite animations
   if (keyPresses.w) {
@@ -145,6 +163,7 @@ function gameLoop(currentTime) {
     moveCharacter(0, -movementSpeed, facingUp);
     attackingDirection = attackingDown;
     hasMoved = true;
+    
   } else if (keyPresses.s) {
     cycleLoop = cycleLoop4;
     moveCharacter(0, movementSpeed, facingDown);
@@ -163,6 +182,8 @@ function gameLoop(currentTime) {
   }
   if (keyPresses.f) {
     attacking = true;
+
+
   }
   //rotates through sprite animations and keeps animations from moving too fast
   if (hasMoved) {
@@ -189,11 +210,25 @@ function gameLoop(currentTime) {
     // drawHitbox(hitTop);
     // drawHitbox(hitLeft);
     // drawHitbox(hitDown);
-    collisionBox(chestObj, hitRight, "right");
-    collisionBox(chestObj, hitTop, "top");
-    collisionBox(chestObj, hitLeft, "left");
-    collisionBox(chestObj, hitDown, "down");
+    switch (attackingDirection) {
+      case (attackingRight):
+        console.log("hello?")
+        collisionBox(chestObj, hitRight, "right");
+        break;
+      case (attackingLeft):
+        collisionBox(chestObj, hitLeft, "left");
+        break;
+      case (attackingUp):
+        collisionBox(chestObj, hitDown, "down");
 
+        break;
+      case (attackingDown):
+        collisionBox(chestObj, hitTop, "top");
+
+        break;
+
+
+    }
 
     frameCount++;
     drawAttack(
@@ -211,8 +246,10 @@ function gameLoop(currentTime) {
     }
     if (attackingLoopIndex >= attackingLoop.length) {
       attackingLoopIndex = 0;
-      window.cancelAnimationFrame(gameLoop);
       attacking = false;
+      hasAttacked = true;
+      window.cancelAnimationFrame(gameLoop);
+
     }
   } else {
     //resets attacking loop, draws character at current position, then recalls the function
@@ -223,10 +260,13 @@ function gameLoop(currentTime) {
       positionX,
       positionY
     );
-    moveObject(chestObj);
+
 
     window.requestAnimationFrame(gameLoop);
   }
+
+ 
+  moveObject(chestObj);
 }
 
 //function for detecting movement and collision with walls / other objects
@@ -242,9 +282,8 @@ function moveObject(object) {
     object.x -= 0.5;
   }
   if (object.x < positionX) {
-    object.x+= 0.5;
+    object.x += 0.5;
   }
-
 
 }
 function moveCharacter(deltaX, deltaY, direction) {
@@ -263,6 +302,8 @@ function moveCharacter(deltaX, deltaY, direction) {
 
   collision(chestObj);
   collision(bigChest);
+
+  // collision(wall)
   //bump collisions called when running into an object
   if (colliding && currentDirection === 3) {
     positionX -= movementSpeed;
@@ -293,7 +334,7 @@ function moveCharacter(deltaX, deltaY, direction) {
 }
 //function for hitbox with sword
 
-function collisionBox(object1, object2, direction) {
+function collisionBox(object1, object2,direction) {
   enemyHit = false;
 
 
@@ -303,20 +344,20 @@ function collisionBox(object1, object2, direction) {
     object1.y + object1.height > object2.y) {
     console.log("HELLO!")
     enemyHit = true;
-  }
+  } 
   if (enemyHit) {
     switch (direction) {
       case "right":
-        object1.x += 10;
+        object1.x += 1;
         break;
       case "top":
-        object1.y -= 10;
+        object1.y -= 1;
         break;
       case "left":
-        object1.x -= 10;
+        object1.x -= 1;
         break;
       case "down":
-        object1.y += 10;
+        object1.y += 1;
     }
 
   }
