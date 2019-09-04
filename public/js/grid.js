@@ -1,11 +1,12 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-const tileWidth = 32;
-const tileHeight = 32;
+scale = 2;
+const tileWidth = 32 * scale;
+const tileHeight = 32 * scale;
 const bTiles = new Image();
 const charSprite = new Image();
 
-let frameLimit = 3;
+let frameLimit = 5;
 let frameCount = 0;
 let directionIdle = 0;
 let directionLeft = 1;
@@ -19,11 +20,14 @@ let character = {
   direction: directionRight,
   row: 5,
   col: 5,
-  speed: 2
+  speed: 10,
+  x: 4,
+  y: 32
 };
 
 let maps = {
   mapOne: [
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
     [1, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 2],
     [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7],
     [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7],
@@ -33,7 +37,8 @@ let maps = {
     [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7],
     [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7],
     [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7],
-    [3, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4]
+    [3, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
   ]
 };
 
@@ -65,25 +70,25 @@ loadImage();
 function draw(sx, sy, x, y) {
   ctx.drawImage(
     bTiles,
-    sx * tileWidth,
-    sy * tileHeight,
+    sx * 32,
+    sy * 32,
     32,
     32,
     x * tileWidth,
     y * tileHeight,
-    32,
-    32
+    tileWidth,
+    tileHeight
   );
 }
 function drawChar(image, frameX, frameY, cx, cy) {
   ctx.drawImage(
     image,
-    frameX * tileWidth,
-    frameY * tileHeight,
-    tileWidth,
-    tileHeight,
-    cx * tileWidth,
-    cy * tileHeight,
+    frameX * 32,
+    frameY * 32,
+    32,
+    32,
+    cx,
+    cy,
     tileWidth,
     tileHeight
   );
@@ -94,7 +99,6 @@ function renderStage() {
     for (var x = 0; x < maps.mapOne[y].length; x++) {
       switch (maps.mapOne[y][x]) {
         case 0:
-          // ctx.drawImage(bTiles, 1 * tileWidth, 1 * tileHeight, 32, 32, x * tileWidth, y * tileHeight, 32, 32)
           draw(1, 1, x, y);
           break;
         case 1:
@@ -193,8 +197,8 @@ function gameLoop() {
     charSprite,
     character.animationLoop[character.moveLoopIndex],
     character.direction,
-    character.row,
-    character.col
+    character.x,
+    character.y
   );
   character.moveLoopIndex++;
   if (character.moveLoopIndex >= character.animationLoop.length) {
@@ -205,20 +209,28 @@ function gameLoop() {
 }
 function moveCharacter(direction){
 
- 
-
-  if (direction === "left" && maps.mapOne[character.col][character.row -1] <=8) {
-    character.row -= 1;
-  } else if (direction === "right" && maps.mapOne[character.col][character.row +1] <= 8) {
-    character.row += 1;
-  } else if (direction === "down" && maps.mapOne[character.col][character.row] <=8) {
-    character.col +=1;
-   } else if (direction === "up" && maps.mapOne[character.col][character.row] <= 8) {
-    console.log("hello?")
-    character.col -=1;
+  if(direction === "left") {
+    character.x -= character.speed;
+    character.row -= character.speed / 10;
+    console.log(character.row)
+  } else if (direction === "right") {
+    character.x += character.speed;
+  } else if (direction === "up") {
+    character.y -= character.speed;
+  } else if (direction === "down") {
+    character.y += character.speed;
   }
+
  
-
-
+  // if (direction === "left" && maps.mapOne[character.col][character.row -1] <=8) {
+  //   character.row -= 1;
+  // } else if (direction === "right" && maps.mapOne[character.col][character.row +1] <= 8) {
+  //   character.row += 1;
+  // } else if (direction === "down" && maps.mapOne[character.col +1][character.row] !=-1) {
+  //   character.col +=1;
+  //  } else if (direction === "up" && maps.mapOne[character.col - 1][character.row] != -1) {
+  //   console.log("hello?")
+  //   character.col -=1;
+  // }
 
 }
